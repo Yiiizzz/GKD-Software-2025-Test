@@ -1,0 +1,157 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <fstream>
+#include "include/json.hpp"
+using json = nlohmann::json;
+using namespace std;
+
+// 矩阵类
+class Matrix {
+public:
+    vector<vector<float>> data;
+    int rows, cols;
+
+    Matrix(int r, int c) {
+        rows = r;
+        cols = c;
+        data = vector<vector<float>>(r, vector<float>(c, 0));
+    }
+
+    // 矩阵加法
+    Matrix add(Matrix other) {
+        Matrix result(rows, cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                result.data[i][j] = data[i][j] + other.data[i][j];
+            }
+        }
+        return result;
+    }
+
+    // 矩阵乘法
+    Matrix multiply(Matrix other) {
+        Matrix result(rows, other.cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < other.cols; j++) {
+                float sum = 0;
+                for (int k = 0; k < cols; k++) {
+                    sum += data[i][k] * other.data[k][j];
+                }
+                result.data[i][j] = sum;
+            }
+        }
+        return result;
+    }
+
+    void load_from_file(string filename) {
+        ifstream file(filename, ios::binary);
+        for (int i = 0; i < rows; i++){
+           for (int j = 0; j < cols; j++){
+              file.read(reinterpret_cast<char*>(&data[i][j]), sizeof(float));
+           }
+        }
+        file.close();
+    }
+};
+
+// ReLU函数
+Matrix relu(Matrix m) {
+    Matrix result(m.rows, m.cols);
+    for (int i = 0; i < m.rows; i++) {
+        for (int j = 0; j < m.cols; j++) {
+            if (m.data[i][j] < 0) {
+                result.data[i][j] = 0;
+            } else {
+                result.data[i][j] = m.data[i][j];
+            }
+        }
+    }
+    return result;
+}
+
+// Softmax函数
+vector<float> softmax(Matrix m) {
+    vector<float> vec; 
+
+    // 如果是行向量
+    if (m.rows == 1) {
+        vec = m.data[0];
+    }
+    // 如果是列向量
+    else if (m.cols == 1) {
+        vec = vector<float>(m.rows);
+        for (int i = 0; i < m.rows; i++) {
+            vec[i] = m.data[i][0];
+        }
+    }
+
+    int size = vec.size();
+    vector<float> eval(size);
+    float sum = 0;
+
+    for (int i = 0; i < size; i++) {
+        eval[i] = exp(vec[i]);
+        sum += eval[i];
+    }
+
+    vector<float> result(size);
+    for (int i = 0; i < size; i++) {
+        result[i] = eval[i] / sum;
+    }
+    return result;
+}
+
+// model类
+class model {
+public:
+    Matrix w1, b1, w2, b2;
+
+    model() : w1(1, 1), b1(1, 1), w2(1, 1), b2(1, 1) {
+
+        // 读取 meta.json
+        ifstream meta_file("mnist-fc/meta.json");
+        json meta;
+        meta_file >> meta;
+
+        int w1_r = meta["fc1.weight"][0];
+        int w1_c = meta["fc1.weight"][1];
+        int b1_r = meta["fc1.bias"][0];
+        int b1_c = meta["fc1.bias"][1];
+        int w2_r = meta["fc2.weight"][0];
+        int w2_c = meta["fc2.weight"][1];
+        int b2_r = meta["fc2.bias"][0];
+        int b2_c = meta["fc2.bias"][1];
+
+        w1 = Matrix(w1_r, w1_c);  w1.load_from_file("mnist-fc/fc1.weight");
+        b1 = Matrix(b1_r, b1_c);  b1.load_from_file("mnist-fc/fc1.bias");
+        w2 = Matrix(w2_r, w2_c);  w2.load_from_file("mnist-fc/fc2.weight");
+        b2 = Matrix(b2_r, b2_c);  b2.load_from_file("mnist-fc/fc2.bias");
+    }
+
+    // forward函数
+    vector<float> forward(Matrix input) {
+        Matrix x1 = input.multiply(w1);
+        Matrix x2 = x1.add(b1);
+        Matrix x3 = relu(x2);
+        Matrix x4 = x3.multiply(w2);
+        Matrix x5 = x4.add(b2);
+        vector<float> x6 = softmax(x5);
+
+        return x6;
+    }
+};
+
+int main() {
+    model model;
+    Matrix input(1, 784);
+    
+    vector<float> output = model.forward(input);
+
+    for (int i = 0; i < output.size(); i++) {
+        cout << output[i] << " ";
+    }
+    cout << endl;
+
+    return 0;
+}
