@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build code.cpp",
+      "type": "shell",
+      "command": "cl",
+      "args": [
+          "code.cpp",
+          "/std:c++17",
+          "/I\"C:\\Users\\Yi\\vcpkg\\installed\\x64-windows\\include\"",
+          "/I\"C:\\Users\\Yi\\vcpkg\\installed\\x64-windows\\include\\opencv4\"",
+          "/EHsc",
+          "/link",
+          "/LIBPATH:\"C:\\Users\\Yi\\vcpkg\\installed\\x64-windows\\lib\"",
+          "opencv_core4.lib",
+          "opencv_imgproc4.lib",
+          "opencv_imgcodecs4.lib",
+          "opencv_highgui4.lib",
+          "opencv_videoio4.lib"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$msCompile"]
+    }
+  ]
+}

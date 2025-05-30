@@ -3,6 +3,8 @@
 #include <cmath>
 #include <fstream>
 #include "include/json.hpp"
+#include <opencv2/opencv.hpp>
+using namespace cv;
 using json = nlohmann::json;
 using namespace std;
 
@@ -144,14 +146,39 @@ public:
 
 int main() {
     model model;
-    Matrix input(1, 784);
-    
-    vector<float> output = model.forward(input);
 
-    for (int i = 0; i < output.size(); i++) {
-        cout << output[i] << " ";
+    string folder = "nums";
+    vector<string> pnglist = {
+    "nums/0.png", "nums/1.png", "nums/2.png", "nums/3.png",
+    "nums/4.png", "nums/5.png", "nums/6.png", "nums/7.png",
+    "nums/8.png", "nums/9.png"
+};
+for (int i = 0; i < pnglist.size(); i++) {
+    string path = pnglist[i];
+        Mat img = imread(path, IMREAD_GRAYSCALE);
+    if (img.empty()) {
+        cerr << "无法读取图片: " << path << endl;
+        continue;
     }
-    cout << endl;
+  
+
+        Mat png;
+        resize(img, png, Size(28, 28));
+  
+        //拍扁
+        Matrix input(1, 784);
+        for (int i = 0; i < 28; i++) {
+            for (int j = 0; j < 28; j++) {
+                input.data[0][i * 28 + j] = png.at<uchar>(i, j) / 255.0f;
+            }
+        }
+
+        vector<float> output = model.forward(input);
+        for (int i = 0; i < output.size(); i++) {
+            cout << output[i] << " ";
+        }
+        cout << endl;
+    }
 
     return 0;
 }
