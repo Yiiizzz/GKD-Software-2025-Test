@@ -111,6 +111,8 @@ vector<float> softmax(Matrix<T> m) {
     return result;
 }
 
+
+
 // model类
 template<typename T>
 class model {
@@ -171,7 +173,7 @@ for (int i = 0; i < pnglist.size(); i++) {
 
         Mat img = imread(path, IMREAD_GRAYSCALE);
     if (img.empty()) {
-        cerr << "无法读取图片: " << path << endl;
+        cerr << "can't read picture: " << path << endl;
         continue;
     }
   
@@ -188,8 +190,12 @@ for (int i = 0; i < pnglist.size(); i++) {
         }
 
         vector<float> output = model.forward(input);
-        for (int i = 0; i < output.size(); i++) {
-            cout << output[i] << " ";
+        cout << "picture: " << path << endl;
+
+        // 输出概率向量
+        cout << "probability vector: ";
+        for (float prob : output) {
+            cout << prob << " ";
         }
         cout << endl;
     }
