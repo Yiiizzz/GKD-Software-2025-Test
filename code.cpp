@@ -9,20 +9,21 @@ using json = nlohmann::json;
 using namespace std;
 
 // 矩阵类
+template<typename T>
 class Matrix {
 public:
-    vector<vector<float>> data;
+    vector<vector<T>> data;
     int rows, cols;
 
     Matrix(int r, int c) {
         rows = r;
         cols = c;
-        data = vector<vector<float>>(r, vector<float>(c, 0));
+        data = vector<vector<T>>(r, vector<T>(c, 0));
     }
 
     // 矩阵加法
-    Matrix add(Matrix other) {
-        Matrix result(rows, cols);
+    Matrix<T> add(Matrix<T> other) {
+        Matrix<T> result(rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 result.data[i][j] = data[i][j] + other.data[i][j];
@@ -32,8 +33,8 @@ public:
     }
 
     // 矩阵乘法
-    Matrix multiply(Matrix other) {
-        Matrix result(rows, other.cols);
+    Matrix<T> multiply(Matrix<T> other) {
+        Matrix<T> result(rows, other.cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < other.cols; j++) {
                 float sum = 0;
@@ -50,7 +51,7 @@ public:
         ifstream file(filename, ios::binary);
         for (int i = 0; i < rows; i++){
            for (int j = 0; j < cols; j++){
-              file.read(reinterpret_cast<char*>(&data[i][j]), sizeof(float));
+              file.read(reinterpret_cast<char*>(&data[i][j]), sizeof(T));
            }
         }
         file.close();
@@ -58,8 +59,9 @@ public:
 };
 
 // ReLU函数
-Matrix relu(Matrix m) {
-    Matrix result(m.rows, m.cols);
+template<typename T>
+Matrix<T> relu(Matrix<T> m) {
+    Matrix<T> result(m.rows, m.cols);
     for (int i = 0; i < m.rows; i++) {
         for (int j = 0; j < m.cols; j++) {
             if (m.data[i][j] < 0) {
@@ -73,7 +75,8 @@ Matrix relu(Matrix m) {
 }
 
 // Softmax函数
-vector<float> softmax(Matrix m) {
+template<typename T>
+vector<float> softmax(Matrix<T> m) {
     vector<float> vec; 
 
     // 如果是行向量
@@ -105,9 +108,10 @@ vector<float> softmax(Matrix m) {
 }
 
 // model类
+template<typename T>
 class model {
 public:
-    Matrix w1, b1, w2, b2;
+    Matrix<T> w1, b1, w2, b2;
 
     model() : w1(1, 1), b1(1, 1), w2(1, 1), b2(1, 1) {
 
@@ -125,19 +129,19 @@ public:
         int b2_r = meta["fc2.bias"][0];
         int b2_c = meta["fc2.bias"][1];
 
-        w1 = Matrix(w1_r, w1_c);  w1.load_from_file("mnist-fc/fc1.weight");
-        b1 = Matrix(b1_r, b1_c);  b1.load_from_file("mnist-fc/fc1.bias");
-        w2 = Matrix(w2_r, w2_c);  w2.load_from_file("mnist-fc/fc2.weight");
-        b2 = Matrix(b2_r, b2_c);  b2.load_from_file("mnist-fc/fc2.bias");
+        w1 = Matrix<T>(w1_r, w1_c);  w1.load_from_file("mnist-fc/fc1.weight");
+        b1 = Matrix<T>(b1_r, b1_c);  b1.load_from_file("mnist-fc/fc1.bias");
+        w2 = Matrix<T>(w2_r, w2_c);  w2.load_from_file("mnist-fc/fc2.weight");
+        b2 = Matrix<T>(b2_r, b2_c);  b2.load_from_file("mnist-fc/fc2.bias");
     }
 
     // forward函数
-    vector<float> forward(Matrix input) {
-        Matrix x1 = input.multiply(w1);
-        Matrix x2 = x1.add(b1);
-        Matrix x3 = relu(x2);
-        Matrix x4 = x3.multiply(w2);
-        Matrix x5 = x4.add(b2);
+    vector<float> forward(Matrix<T> input) {
+        Matrix<T> x1 = input.multiply(w1);
+        Matrix<T> x2 = x1.add(b1);
+        Matrix<T> x3 = relu(x2);
+        Matrix<T> x4 = x3.multiply(w2);
+        Matrix<T> x5 = x4.add(b2);
         vector<float> x6 = softmax(x5);
 
         return x6;
@@ -145,7 +149,7 @@ public:
 };
 
 int main() {
-    model model;
+    model<float> model;
 
     string folder = "nums";
     vector<string> pnglist = {
@@ -166,7 +170,7 @@ for (int i = 0; i < pnglist.size(); i++) {
         resize(img, png, Size(28, 28));
   
         //拍扁
-        Matrix input(1, 784);
+        Matrix<float> input(1, 784);
         for (int i = 0; i < 28; i++) {
             for (int j = 0; j < 28; j++) {
                 input.data[0][i * 28 + j] = png.at<uchar>(i, j) / 255.0f;
