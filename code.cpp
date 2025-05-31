@@ -4,6 +4,7 @@
 #include <fstream>
 #include "include/json.hpp"
 #include <opencv2/opencv.hpp>
+#include <chrono>
 using namespace cv;
 using json = nlohmann::json;
 using namespace std;
@@ -189,8 +190,16 @@ for (int i = 0; i < pnglist.size(); i++) {
             }
         }
 
+
+        auto start = std::chrono::high_resolution_clock::now();
         vector<float> output = model.forward(input);
+        auto end = std::chrono::high_resolution_clock::now();
+        // 计算耗时
+        std::chrono::duration<double, std::milli> duration = end - start;
+
         cout << "picture: " << path << endl;
+
+        cout << "forward time: " << duration.count() << " ms" << endl;
 
         // 输出概率向量
         cout << "probability vector: ";
