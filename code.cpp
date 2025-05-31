@@ -81,13 +81,17 @@ vector<float> softmax(Matrix<T> m) {
 
     // 如果是行向量
     if (m.rows == 1) {
-        vec = m.data[0];
+        vec.resize(m.cols);
+        for (int i = 0; i < m.cols; ++i) {
+        vec[i] = static_cast<float>(m.data[0][i]);
     }
+}
+
     // 如果是列向量
     else if (m.cols == 1) {
-        vec = vector<float>(m.rows);
+        vec.resize(m.rows);
         for (int i = 0; i < m.rows; i++) {
-            vec[i] = m.data[i][0];
+            vec[i] = static_cast<float>(m.data[i][0]);
         }
     }
 
@@ -116,7 +120,7 @@ public:
     model() : w1(1, 1), b1(1, 1), w2(1, 1), b2(1, 1) {
 
         // 读取 meta.json
-        ifstream meta_file("mnist-fc/meta.json");
+        ifstream meta_file("mnist-fc-plus/meta.json");
         json meta;
         meta_file >> meta;
 
@@ -129,10 +133,10 @@ public:
         int b2_r = meta["fc2.bias"][0];
         int b2_c = meta["fc2.bias"][1];
 
-        w1 = Matrix<T>(w1_r, w1_c);  w1.load_from_file("mnist-fc/fc1.weight");
-        b1 = Matrix<T>(b1_r, b1_c);  b1.load_from_file("mnist-fc/fc1.bias");
-        w2 = Matrix<T>(w2_r, w2_c);  w2.load_from_file("mnist-fc/fc2.weight");
-        b2 = Matrix<T>(b2_r, b2_c);  b2.load_from_file("mnist-fc/fc2.bias");
+        w1 = Matrix<T>(w1_r, w1_c);  w1.load_from_file("mnist-fc-plus/fc1.weight");
+        b1 = Matrix<T>(b1_r, b1_c);  b1.load_from_file("mnist-fc-plus/fc1.bias");
+        w2 = Matrix<T>(w2_r, w2_c);  w2.load_from_file("mnist-fc-plus/fc2.weight");
+        b2 = Matrix<T>(b2_r, b2_c);  b2.load_from_file("mnist-fc-plus/fc2.bias");
     }
 
     // forward函数
@@ -149,7 +153,12 @@ public:
 };
 
 int main() {
-    model<float> model;
+    model<double> model;
+
+    cout << "w1 size: " << model.w1.rows << " x " << model.w1.cols << endl;
+    cout << "b1 size: " << model.b1.rows << " x " << model.b1.cols << endl;
+    cout << "w2 size: " << model.w2.rows << " x " << model.w2.cols << endl;
+    cout << "b2 size: " << model.b2.rows << " x " << model.b2.cols << endl;
 
     string folder = "nums";
     vector<string> pnglist = {
@@ -159,18 +168,19 @@ int main() {
 };
 for (int i = 0; i < pnglist.size(); i++) {
     string path = pnglist[i];
+
         Mat img = imread(path, IMREAD_GRAYSCALE);
     if (img.empty()) {
         cerr << "无法读取图片: " << path << endl;
         continue;
     }
   
-
+        //缩放为28x28
         Mat png;
         resize(img, png, Size(28, 28));
   
         //拍扁
-        Matrix<float> input(1, 784);
+        Matrix<double> input(1, 784);
         for (int i = 0; i < 28; i++) {
             for (int j = 0; j < 28; j++) {
                 input.data[0][i * 28 + j] = png.at<uchar>(i, j) / 255.0f;

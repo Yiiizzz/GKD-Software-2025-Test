@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/Yi/Desktop/GKD/final/GKD-Software-2025-Test-main/build",
+  "command": "D:\\VISUAL~1\\VISUAL~1\\COMMUN~1\\VC\\Tools\\MSVC\\1436~1.325\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -external:IC:\\Users\\Yi\\vcpkg\\installed\\x64-windows\\include\\opencv4 -external:W0 /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /FoCMakeFiles\\main.dir\\code.cpp.obj /FdCMakeFiles\\main.dir\\ /FS -c C:\\Users\\Yi\\Desktop\\GKD\\final\\GKD-Software-2025-Test-main\\code.cpp",
+  "file": "C:\\Users\\Yi\\Desktop\\GKD\\final\\GKD-Software-2025-Test-main\\code.cpp",
+  "output": "CMakeFiles\\main.dir\\code.cpp.obj"
+}
+]

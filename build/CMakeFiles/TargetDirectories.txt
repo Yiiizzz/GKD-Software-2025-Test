@@ -1,0 +1,3 @@
+C:/Users/Yi/Desktop/GKD/final/GKD-Software-2025-Test-main/build/CMakeFiles/main.dir
+C:/Users/Yi/Desktop/GKD/final/GKD-Software-2025-Test-main/build/CMakeFiles/edit_cache.dir
+C:/Users/Yi/Desktop/GKD/final/GKD-Software-2025-Test-main/build/CMakeFiles/rebuild_cache.dir
