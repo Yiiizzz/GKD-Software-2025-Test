@@ -5,6 +5,7 @@
 #include "include/json.hpp"
 #include <opencv2/opencv.hpp>
 #include <chrono>
+#include <thread>
 using namespace cv;
 using json = nlohmann::json;
 using namespace std;
@@ -34,10 +35,12 @@ public:
     }
 
     // 矩阵乘法
-    Matrix<T> multiply(Matrix<T> other) {
-        Matrix<T> result(rows, other.cols);
+    Matrix<T> multiply(Matrix<T> other, int num_threads = 8) {
+    Matrix<T> result(rows, other.cols);
+
+    auto work = [&](int start_col, int end_col) {
         for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < other.cols; j++) {
+            for (int j = start_col; j < end_col; j++){ 
                 float sum = 0;
                 for (int k = 0; k < cols; k++) {
                     sum += data[i][k] * other.data[k][j];
@@ -45,8 +48,30 @@ public:
                 result.data[i][j] = sum;
             }
         }
-        return result;
+    };
+
+    vector<thread> threads;
+    int every = other.cols / num_threads;
+    int left = other.cols % num_threads;
+    int now = 0;
+
+    for (int t = 0; t < num_threads; t++) {
+        int start = now;
+        int extra = 0;
+        if (t < left) {
+            extra = 1;
+        }
+        int end = start + every + extra;
+        threads.push_back(thread(work, start, end));
+        now = end;
     }
+
+    for (auto thread : threads) {
+        thread.join();
+    }
+
+    return result;
+}
 
     void load_from_file(string filename) {
         ifstream file(filename, ios::binary);
@@ -143,11 +168,11 @@ public:
     }
 
     // forward函数
-    vector<float> forward(Matrix<T> input) {
-        Matrix<T> x1 = input.multiply(w1);
+    vector<float> forward(Matrix<T> input, int threads = 8) {
+        Matrix<T> x1 = input.multiply(w1, threads);
         Matrix<T> x2 = x1.add(b1);
         Matrix<T> x3 = relu(x2);
-        Matrix<T> x4 = x3.multiply(w2);
+        Matrix<T> x4 = x3.multiply(w2, threads);
         Matrix<T> x5 = x4.add(b2);
         vector<float> x6 = softmax(x5);
 
@@ -192,7 +217,7 @@ for (int i = 0; i < pnglist.size(); i++) {
 
 
         auto start = std::chrono::high_resolution_clock::now();
-        vector<float> output = model.forward(input);
+        vector<float> output = model.forward(input,8);
         auto end = std::chrono::high_resolution_clock::now();
         // 计算耗时
         std::chrono::duration<double, std::milli> duration = end - start;
